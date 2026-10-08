@@ -1,0 +1,910 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouCue</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f0f10;
+      --panel: #18181b;
+      --panel-2: #222226;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --border: #303036;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      width: 310px;
+      min-height: 420px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+    }
+
+    button, input { font: inherit; }
+
+    .app { padding: 14px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .tagline {
+      margin: -7px 0 13px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .creator {
+      margin-top: 16px;
+      padding-top: 11px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 14px;
+      font-weight: 650;
+      margin: 0;
+    }
+
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 9px 10px;
+      cursor: pointer;
+    }
+
+    .btn:hover { background: var(--panel-2); }
+
+    .btn.primary {
+      background: var(--text);
+      color: #111;
+      border-color: var(--text);
+      font-weight: 650;
+    }
+
+    .btn.small {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .btn.danger { color: #ffb4b4; }
+
+    .back-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .toggle-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    small,
+    .muted {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #404048;
+      border-radius: 999px;
+      transition: .15s ease;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: .15s ease;
+    }
+
+    .switch input:checked + .slider { background: #e4e4e7; }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(16px);
+      background: #111;
+    }
+
+    .master-switch .slider {
+      background: #b91c1c;
+    }
+
+    .master-switch input:checked + .slider {
+      background: #16a34a;
+    }
+
+    .master-switch input:checked + .slider::before {
+      background: white;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .field-row label {
+      width: 56px;
+      color: var(--muted);
+    }
+
+    input[type="number"] {
+      width: 72px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 7px 8px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .preset-grid.fade {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .preset {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 7px 4px;
+      cursor: pointer;
+    }
+
+    .preset.active {
+      background: var(--text);
+      color: #111;
+      border-color: var(--text);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .range-row input[type="range"] {
+      width: 100%;
+      margin: 0;
+    }
+
+    .range-value {
+      min-width: 46px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status {
+      min-height: 18px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .controls-list {
+      display: grid;
+      gap: 2px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .control-row:last-child { border-bottom: 0; }
+
+    .keys {
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 2px 5px;
+      margin-right: 2px;
+      border-radius: 5px;
+      border: 1px solid #44444b;
+      background: #232327;
+      font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .info-button {
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .info-section {
+      margin-bottom: 14px;
+    }
+
+    .info-section h3 {
+      font-size: 13px;
+      margin: 0 0 5px;
+      font-weight: 650;
+    }
+
+    .info-section p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .bookmark-actions { margin-bottom: 12px; }
+
+    .bookmark-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bookmark-item {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 9px;
+      padding: 10px;
+    }
+
+    .bookmark-title {
+      font-weight: 650;
+      line-height: 1.3;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .bookmark-date {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 9px;
+    }
+
+    .bookmark-buttons {
+      display: flex;
+      gap: 7px;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 22px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 9px;
+    }
+
+    .storage-panel {
+      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      padding-top: 12px;
+    }
+
+    .storage-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .storage-title { font-weight: 650; }
+
+    .storage-value {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .storage-track {
+      height: 7px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--panel-2);
+      margin: 8px 0 7px;
+    }
+
+    .storage-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--text);
+      border-radius: inherit;
+      transition: width .15s ease;
+    }
+
+    .storage-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 9px;
+    }
+
+    .storage-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .nav-wide {
+      grid-column: 1 / -1;
+    }
+
+    .export-section {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .export-section:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .export-heading {
+      font-weight: 650;
+      margin-bottom: 4px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      color: var(--text);
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #f4f4f5;
+      flex: 0 0 auto;
+    }
+
+    .record-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .recording-status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .bar-info {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 8px 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .cue-export-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .cue-export-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+    }
+
+    .cue-export-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #f4f4f5;
+    }
+
+    .cue-export-main {
+      min-width: 0;
+    }
+
+    .cue-export-title {
+      font-weight: 650;
+      margin-bottom: 2px;
+    }
+
+    .cue-export-meta {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .bars-select {
+      min-width: 72px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 6px;
+    }
+
+    .export-download {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .warning-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">YouCue</div>
+      <label class="switch master-switch" aria-label="Enable YouCue">
+        <input id="enabled" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <section id="pageMain" class="page active">
+      <div class="tagline">
+        Youtube becomes your sampler, create custom cue points and loop
+      </div>
+      <div class="nav-buttons">
+        <button id="openControls" class="btn" type="button">Controls</button>
+        <button id="openStorage" class="btn" type="button">Storage</button>
+        <button id="openExport" class="btn nav-wide" type="button">
+          Record & Export
+        </button>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">One shot mode</span>
+          <small>When cueing from a paused video, the cue plays only while held.</small>
+        </div>
+        <label class="switch">
+          <input id="oneShotMode" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Dim flash</span>
+          <small>Briefly dims the video on repeats.</small>
+        </div>
+        <label class="switch">
+          <input id="dimFlash" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">YouTube auto cues</span>
+          <small>Unset number cues use YouTube's normal percentage jumps.</small>
+        </div>
+        <label class="switch">
+          <input id="youtubeAutoCues" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">Block YouTube shortcuts</span>
+          <small>Turns off YouTube's own keyboard commands while YouCue stays active.</small>
+        </div>
+        <label class="switch">
+          <input id="blockYouTubeShortcuts" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="section">
+        <div class="field-row">
+          <label for="bpm">Repeat BPM</label>
+          <input id="bpm" type="number" min="40" max="240" step="1">
+          <button id="tapButton" class="btn small" type="button">' TAP</button>
+        </div>
+        <small>BPM controls the timing of note repeat.</small>
+
+        <div class="preset-grid" id="divisionButtons">
+          <button class="preset" data-division="1/4" type="button">1/4</button>
+          <button class="preset" data-division="1/8" type="button">1/8</button>
+          <button class="preset" data-division="1/16" type="button">1/16</button>
+          <button class="preset" data-division="1/32" type="button">1/32</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Note repeat fade out</span>
+            <small>Fade duration for note repeat, measured in milliseconds (ms).</small>
+          </div>
+          <label class="switch">
+            <input id="fadeOut" type="checkbox">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="range-row">
+          <input
+            id="fadeOutMs"
+            type="range"
+            min="1"
+            max="50"
+            step="1"
+            aria-label="Fade duration in milliseconds"
+          >
+          <span id="fadeOutMsValue" class="range-value">20 ms</span>
+        </div>
+
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <div class="creator">Created by Arthur and Chatgpt</div>
+    </section>
+
+    <section id="pageControls" class="page">
+      <div class="back-row">
+        <button class="btn small backMain" type="button">← Main</button>
+        <h2 class="page-title">Controls</h2>
+      </div>
+
+      <div class="info-section">
+        <h3>Cue & loop keys</h3>
+        <p>These are the points YouCue plays or edits.</p>
+      </div>
+
+      <div class="controls-list">
+        <div class="control-row"><div class="keys"><kbd>1–9,0</kbd></div><div>Play number cue.</div></div>
+        <div class="control-row"><div class="keys"><kbd>I</kbd></div><div>Set loop IN.</div></div>
+        <div class="control-row"><div class="keys"><kbd>O</kbd></div><div>Toggle loop on / off.</div></div>
+      </div>
+
+      <div class="info-section" style="margin-top:14px;">
+        <h3>Set points</h3>
+      </div>
+
+      <div class="controls-list">
+        <div class="control-row"><div class="keys"><kbd>⌥</kbd> + <kbd>1–9,0</kbd></div><div>Set number cue.</div></div>
+        <div class="control-row"><div class="keys"><kbd>⌥</kbd> + <kbd>I</kbd></div><div>Set loop OUT and start looping.</div></div>
+      </div>
+
+      <div class="info-section" style="margin-top:14px;">
+        <h3>Edit points</h3>
+        <p>Z/X never edits by itself. Pair Z/X with R or E.</p>
+      </div>
+
+      <div class="controls-list">
+        <div class="control-row"><div class="keys"><kbd>R</kbd> + cue + <kbd>Z/X</kbd></div><div>Repeat and move that cue or loop point.</div></div>
+        <div class="control-row"><div class="keys"><kbd>E</kbd> + <kbd>Z/X</kbd></div><div>Move the last number cue.</div></div>
+      </div>
+
+      <div class="info-section" style="margin-top:14px;">
+        <h3>Repeat</h3>
+      </div>
+
+      <div class="controls-list">
+        <div class="control-row"><div class="keys"><kbd>R</kbd> + cue</div><div>Note repeat.</div></div>
+        <div class="control-row"><div class="keys"><kbd>[</kbd>/<kbd>]</kbd></div><div>Shorten / lengthen repeat.</div></div>
+        <div class="control-row"><div class="keys"><kbd>'</kbd></div><div>Tap repeat BPM.</div></div>
+      </div>
+
+      <button id="openInfo" class="btn info-button" type="button">
+        Additional information
+      </button>
+    </section>
+
+    <section id="pageInfo" class="page">
+      <div class="back-row">
+        <button id="backControls" class="btn small" type="button">← Controls</button>
+        <h2 class="page-title">Additional information</h2>
+      </div>
+
+      <div class="info-section">
+        <h3>Custom cues</h3>
+        <p>
+          Each YouTube video keeps its own cue locations. Once you set a number cue,
+          that saved cue replaces YouTube's normal percentage jump for that number.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>YouTube auto cues</h3>
+        <p>
+          When this is on, any number you have not set behaves like normal YouTube:
+          1 goes to 10%, 2 to 20%, and so on; 0 goes to the beginning. When it is off,
+          unset numbers do nothing.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>One shot mode</h3>
+        <p>
+          One shot behavior applies when you trigger a cue from a paused video. The cue
+          starts playing while you hold it, and playback pauses again when the last held
+          cue is released. Hold R if you want note repeat. With One shot mode off,
+          holding a cue itself starts repeat.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Moving cues</h3>
+        <p>
+          Z moves backward and X moves forward, but only when paired with R or E.
+          Use R + cue + Z/X to hear the point repeat while you move it, or E + Z/X
+          to adjust the last number cue. Movement stays completely manual.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Looping</h3>
+        <p>
+          Press I where the loop should start. Press Option + I where it should end;
+          the loop starts immediately and returns to IN. O exits or restarts the saved
+          loop. Number cues still work independently.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Repeat length</h3>
+        <p>
+          BPM and the selected division determine repeat speed. [ makes the repeat
+          shorter and ] makes it longer. The shortest repeat is 1/32.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Fade out</h3>
+        <p>
+          Fade duration is measured in milliseconds. A small value keeps repeats sharp;
+          a larger value softens the transition more. The slider sets the fade time used
+          for note-repeat smoothing.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Tap tempo</h3>
+        <p>
+          Tap the apostrophe key several times to estimate BPM. It works directly on
+          YouTube even when the popup is closed.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Block YouTube shortcuts</h3>
+        <p>
+          This blocks YouTube's normal playback and viewing keyboard commands, such as
+          Space, J/K/L, arrows, F, M, C, and similar shortcuts. YouCue's own cue, loop,
+          repeat, and edit keys keep working. Typing in search boxes or comments is not blocked.
+        </p>
+      </div>
+
+      <div class="info-section">
+        <h3>Saved data</h3>
+        <p>
+          Cue and loop locations save automatically for every video you edit. A Storage
+          bookmark is separate: it gives you a named video list you can reopen later and
+          protects that video's autosaved data from cleanup.
+        </p>
+      </div>
+    </section>
+
+    <section id="pageExport" class="page">
+      <div class="back-row">
+        <button class="btn small backMain" type="button">← Main</button>
+        <h2 class="page-title">Record & Export</h2>
+      </div>
+
+      <div class="export-section">
+        <div class="export-heading">Performance Record</div>
+        <small>
+          Perform with YouCue live. The take is captured from the current YouTube tab.
+        </small>
+
+        <label class="check-row">
+          <input id="recordMaster" type="checkbox" checked>
+          <span>Include master MP3 in ZIP</span>
+        </label>
+
+        <label class="check-row">
+          <input id="recordSplit" type="checkbox" checked>
+          <span>Include split cue / loop MP3s in ZIP</span>
+        </label>
+
+        <div class="record-actions">
+          <button id="startTake" class="btn primary" type="button">
+            ● Start Take
+          </button>
+          <button id="stopTake" class="btn" type="button">
+            Stop Take
+          </button>
+        </div>
+
+        <div id="recordStatus" class="recording-status">
+          Ready · MP3 192 kbps · 10 minute maximum per take
+        </div>
+      </div>
+
+      <div class="export-section">
+        <div class="export-heading">Cue Export</div>
+        <small>
+          Export saved cues from the current YouTube video. Cue export runs in real time and downloads as one ZIP.
+        </small>
+
+        <div class="field-row">
+          <label for="exportBpm">BPM</label>
+          <input id="exportBpm" type="number" min="40" max="240" step="1">
+        </div>
+
+        <div class="bar-info">
+          <span>Universal YouCue BPM</span>
+          <strong id="barSeconds">1 bar = 2.00 sec</strong>
+        </div>
+
+        <div id="exportVideoTitle" class="recording-status">
+          Open a YouTube video to load cues.
+        </div>
+
+        <div id="cueExportList" class="cue-export-list"></div>
+
+        <div id="loopExportContainer"></div>
+
+        <button id="downloadSelected" class="btn primary export-download" type="button">
+          Download selected as ZIP
+        </button>
+
+        <div id="exportStatus" class="recording-status"></div>
+
+        <div class="warning-note">
+          Only custom cues and the saved I→O loop from the current video are shown.
+          One bar assumes 4/4 time: 240 ÷ BPM seconds.
+        </div>
+      </div>
+    </section>
+
+    <section id="pageStorage" class="page">
+      <div class="back-row">
+        <button class="btn small backMain" type="button">← Main</button>
+        <h2 class="page-title">Storage</h2>
+      </div>
+
+      <div class="bookmark-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <button id="saveCurrentVideo" class="btn primary" type="button">
+          Save current video
+        </button>
+        <button id="clearCurrentVideoSaves" class="btn danger" type="button">
+          Clear current video
+        </button>
+      </div>
+
+      <div id="bookmarkList" class="bookmark-list"></div>
+      <div id="bookmarkStatus" class="status"></div>
+
+      <div class="storage-panel">
+        <div class="storage-head">
+          <span class="storage-title">Autosaved cue data</span>
+          <span id="autosaveStorageValue" class="storage-value">Calculating…</span>
+        </div>
+
+        <div class="storage-track" aria-hidden="true">
+          <div id="storageFill" class="storage-fill"></div>
+        </div>
+
+        <div id="autosaveStorageMeta" class="storage-meta">
+          Custom cues and loop points are saved automatically.
+        </div>
+
+        <div class="storage-actions">
+          <button id="clearOldAutosaves" class="btn small" type="button">
+            Clear old 180d
+          </button>
+          <button id="clearUnbookmarkedAutosaves" class="btn small danger" type="button">
+            Clear unbookmarked
+          </button>
+        </div>
+
+        <div class="storage-meta" style="margin-top:8px;margin-bottom:0;">
+          If storage reaches about 8 MB, YouCue automatically removes the oldest
+          unbookmarked autosaves until usage is back near 6 MB. Saved videos are protected.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

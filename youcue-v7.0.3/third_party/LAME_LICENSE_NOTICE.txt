@@ -1,0 +1,17 @@
+lamejs / LAME acknowledgement
+
+This private YouCue build bundles lamejs (https://github.com/zhuker/lamejs)
+for local MP3 encoding.
+
+The upstream repository states:
+
+Can I use LAME in my commercial program?
+
+Yes, you can, under the restrictions of the LGPL. The easiest way is to:
+1. Link to LAME as a separate file (lame.min.js or lame.all.js).
+2. Fully acknowledge that you are using LAME, and give a link to
+   lame.sourceforge.net.
+3. If you modify LAME, release those modifications back to the LAME project
+   under the LGPL.
+
+YouCue does not modify lame.min.js.
